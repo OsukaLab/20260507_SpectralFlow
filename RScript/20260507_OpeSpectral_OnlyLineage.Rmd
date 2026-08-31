@@ -1,0 +1,185 @@
+---
+title: "20260507_OpeSpectral_OnlyLineage"
+output: html_document
+---
+
+
+
+```{r}
+library(tidyverse)
+library(uwot)
+library(ggplot2)
+library(dplyr)
+library(FlowSOM)
+library(pheatmap)
+
+data_dir <- "/Data/Input/SpectralFlow_FromOpe"
+
+files <- list.files(
+  path = data_dir,
+  pattern = "\\.csv$",
+  full.names = TRUE
+)
+
+files
+length(files)
+```
+
+```{r}
+flow_df <- purrr::map_dfr(files, function(f) {
+  
+  file_base <- tools::file_path_sans_ext(basename(f))
+  
+  sample_id <- stringr::str_extract(file_base, "Sample\\d+")
+  group <- stringr::str_extract(file_base, "Ctrl|CBD")
+  
+  read.csv(f, check.names = FALSE) %>%
+    mutate(
+      sample_id = sample_id,
+      group = group,
+      file_name = basename(f)
+    )
+})
+
+# Check import
+dim(flow_df)
+table(flow_df$sample_id, flow_df$group)
+colnames(flow_df)
+```
+
+```{r}
+marker_cols <- c(
+  "PD1",
+  "CD44",
+  "CTLA4",
+  "CD3",
+  "CD4",
+  "CD62L",
+  "KI67",
+  "CD8",
+  "NK11",
+  "FOXP3"
+)
+
+# Check that all markers exist
+setdiff(marker_cols, colnames(flow_df))
+```
+
+```{r}
+marker_cols_umap <- c(
+  "CD4",
+  "CD8",
+  "NK11",
+  "FOXP3"
+)
+
+setdiff(marker_cols_umap, colnames(flow_df))
+```
+
+```{r}
+flow_clean <- flow_df
+
+for (m in marker_cols) {
+  
+  low_cut  <- quantile(flow_clean[[m]], 0.001, na.rm = TRUE)
+  high_cut <- quantile(flow_clean[[m]], 0.999, na.rm = TRUE)
+  
+  flow_clean[[m]] <- pmin(
+    pmax(flow_clean[[m]], low_cut),
+    high_cut
+  )
+}
+
+flow_trans <- flow_clean
+
+cofactor <- 5
+
+flow_trans[marker_cols] <- asinh(
+  flow_trans[marker_cols] / cofactor
+)
+
+flow_trans[marker_cols_umap] <- scale(
+  flow_trans[marker_cols_umap]
+)
+```
+
+```{r}
+set.seed(123)
+
+cells_per_sample <- 5000
+
+flow_ds <- flow_trans %>%
+  group_by(sample_id) %>%
+  group_modify(~ {
+    n_keep <- min(cells_per_sample, nrow(.x))
+    slice_sample(.x, n = n_keep)
+  }) %>%
+  ungroup()
+```
+
+```{r}
+set.seed(123)
+
+umap_mat <- uwot::umap(
+  as.matrix(flow_ds[, marker_cols_umap]),
+  n_neighbors = 75,
+  min_dist = 0.6,
+  metric = "euclidean",
+  verbose = TRUE
+)
+
+flow_umap <- flow_ds %>%
+  mutate(
+    UMAP_1 = umap_mat[, 1],
+    UMAP_2 = umap_mat[, 2]
+  )
+```
+
+```{r}
+fsom_mat <- flow_ds %>%
+  select(all_of(marker_cols_umap)) %>%
+  as.matrix()
+
+set.seed(123)
+
+fsom <- FlowSOM::FlowSOM(
+  fsom_mat,
+  colsToUse = seq_len(ncol(fsom_mat)),
+  xdim = 8,
+  ydim = 8,
+  nClus = 5,
+  scale = FALSE
+)
+
+cell_to_node <- fsom$map$mapping[, 1]
+
+flow_umap$cluster <- factor(fsom$metaclustering[cell_to_node])
+```
+
+```{r}
+ggplot(flow_umap,
+       aes(UMAP_1, UMAP_2, color = cluster)) +
+  geom_point(size = 0.15, alpha = 0.7) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+```
+```{r}
+ggplot(flow_umap,
+       aes(UMAP_1, UMAP_2, color = sample_id)) +
+  geom_point(
+    size = 0.12,
+    alpha = 0.5
+  ) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+```
+
+```{r}
+ggplot(flow_umap,
+       aes(UMAP_1, UMAP_2, color = FOXP3)) +
+  geom_point(size = 0.15, alpha = 0.7) +
+  scale_color_viridis_c() +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+```
+

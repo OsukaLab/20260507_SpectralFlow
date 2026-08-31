@@ -1,0 +1,13 @@
+"group","mouse","sample_id","filename","n_cells"
+"COL_KO","001","COL_KO_001","export_first-specimen_COL_KO__001_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",9956
+"COL_KO","002","COL_KO_002","export_first-specimen_COL_KO__002_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",8045
+"COL_KO","003","COL_KO_003","export_first-specimen_COL_KO__003_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",11384
+"COL_KO","004","COL_KO_004","export_first-specimen_COL_KO__004_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",15271
+"COL_KO","005","COL_KO_005","export_first-specimen_COL_KO__005_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",18830
+"COL_KO","006","COL_KO_006","export_first-specimen_COL_KO__006_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",18388
+"Ctrl","001","Ctrl_001","export_first-specimen_Ctrl_001_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",7247
+"Ctrl","002","Ctrl_002","export_first-specimen_Ctrl_002_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",6595
+"Ctrl","003","Ctrl_003","export_first-specimen_Ctrl_003_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",4476
+"Ctrl","004","Ctrl_004","export_first-specimen_Ctrl_004_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",8510
+"Ctrl","005","Ctrl_005","export_first-specimen_Ctrl_005_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",7400
+"Ctrl","006","Ctrl_006","export_first-specimen_Ctrl_006_CD3, SSC-A subset+ or NK11, CD45 subset+.fcs",7372
